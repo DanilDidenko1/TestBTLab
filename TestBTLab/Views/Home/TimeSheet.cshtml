@@ -1,0 +1,248 @@
+﻿@{
+    ViewData["Title"] = "Time Sheet";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Учет отсутсвия сотрудников</h1>
+</div>
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" >Добавить запись</button>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Добавить запись</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tSheetId" />
+        
+        <label for="employeeIDinput">ID сотрудника</label>
+        <input type="text" class="form-control" id="employeeIDinput"></input>
+
+        <label for="reasonInput">Причина</label>
+        <input type="text" class="form-control" id="reasonInput"></input>
+
+        <label for="dateStartInput">Дата начала</label>
+        <input type="text" class="form-control" id="dateStartInput"></input>
+
+        <label for="durationInput">Продолжительность</label>
+        <input type="text" class="form-control" id="durationInput"></input>
+
+        <label for="discountedInput">Учтено при оплате</label>
+        <input type="text" class="form-control" id="discountedInput"></input>
+
+        <label for="descriprtionInput">Описание</label>
+        <input type="text" class="form-control" id="descriprtionInput"></input>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn btn-primary" id="saveBtn">Сохранить изменения</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+ <table class="table">
+        <thead>
+            <tr>
+                <th>ID сотрудника</th>
+                <th>Причина</th>
+                <th>Дата начала</th>
+                <th>Продолжительность</th>
+                <th>Учтено при оплате</th>
+                <th>Описание</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+   <script>
+    // функция получения всех записей об отсутсвиях
+         async function getTSheets() {
+            const response = await fetch("/api/timeSheets", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const tSheet = await response.json();
+                const rows = document.querySelector("tbody");
+                // заполняем полученными данными таблицу
+                tSheet.forEach(tSheet => rows.append(row(tSheet)));
+            }
+        }
+         // функция получения одной записи
+        async function getSheet(id) {
+            const response = await fetch(`/api/timeSheets/${id}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const tSheet = await response.json();
+                //заполняем форму данными
+                document.getElementById("tSheetId").value = tSheet.id;
+                document.getElementById("employeeIDinput").value = tSheet.employee;
+                document.getElementById("reasonInput").value = tSheet.reason;
+                document.getElementById("dateStartInput").value = tSheet.start_date;
+                document.getElementById("durationInput").value = tSheet.duration;
+                document.getElementById("discountedInput").value = tSheet.discounted;
+                document.getElementById("descriprtionInput").value = tSheet.description;
+            }
+            else {
+                //выводим ошибку
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        //функция добавления записи 
+        async function createSheet(employeeData, reasonData, startDateData, durationData, discountedData, descriptionData) {
+
+            const response = await fetch("/api/timeSheets", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                //преобразуем данные для объекта
+                body: JSON.stringify({
+                   
+                    employee: parseInt(employeeData),
+                    reason: parseInt(reasonData),
+                    start_date: startDateData,
+                    duration: parseInt(durationData),
+                    discounted: Boolean(discountedData),
+                    description: descriptionData
+                })
+            });
+            if (response.ok === true) {
+                const tSheet = await response.json();
+                //заполняем таблицу
+                document.querySelector("tbody").append(row(tSheet));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        //функция редактирования записи
+        async function editSheet(id, employeeData, reasonData, startDateData, durationData, discountedData, descriptionData) {
+            const response = await fetch("/api/timeSheets", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                //преобразуем данные для объекта
+                body: JSON.stringify({
+                    id: parseInt(id),
+                    employee: parseInt(employeeData),
+                    reason: parseInt(reasonData),
+                    start_date: startDateData,
+                    duration: parseInt(durationData),
+                    discounted: Boolean(discountedData),
+                    description: descriptionData
+                })
+            });
+            if (response.ok === true) {
+                const tSheet = await response.json();
+                //заменяем данные в таблице
+                document.querySelector(`tr[data-rowid='${tSheet.id}']`).replaceWith(row(tSheet));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        //функция удаления записи
+        async function deleteSheet(id) {
+            const response = await fetch(`/api/timeSheets/${id}`, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const tSheet = await response.json();
+                //удаляем запись
+                document.querySelector(`tr[data-rowid='${tSheet.id}']`).remove();
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        //функция сброса формы
+        function reset() {
+                document.getElementById("tSheetId").value = 
+                document.getElementById("employeeIDinput").value = 
+                document.getElementById("reasonInput").value = 
+                document.getElementById("dateStartInput").value = 
+                document.getElementById("durationInput").value = 
+                document.getElementById("discountedInput").value = 
+                document.getElementById("descriprtionInput").value = "";
+        }
+        //функция для заполнения таблицы данными
+        function row(tSheet) {
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", tSheet.id);
+
+            const lastNameTd = document.createElement("td");
+            lastNameTd.append(tSheet.employee);
+            tr.append(lastNameTd);
+
+            const reasonTd = document.createElement("td");
+            reasonTd.append(tSheet.reason);
+            tr.append(reasonTd);
+
+            const dateTd = document.createElement("td");
+            dateTd.append(tSheet.start_date);
+            tr.append(dateTd);
+
+            const durationTd = document.createElement("td");
+            durationTd.append(tSheet.duration);
+            tr.append(durationTd);
+
+            const discountedTd = document.createElement("td");
+            discountedTd.append(tSheet.discounted);
+            tr.append(discountedTd);
+
+            const descriptionTd = document.createElement("td");
+            descriptionTd.append(tSheet.description);
+            tr.append(descriptionTd);
+
+            const linksTd = document.createElement("td");
+
+            const editLink = document.createElement("button"); 
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async() => await getSheet(tSheet.id));
+            linksTd.append(editLink);
+
+            const removeLink = document.createElement("button"); 
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteSheet(tSheet.id));
+
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+
+            return tr;
+        }
+
+        //обработчик кнопки для отправки данных формы
+        document.getElementById("saveBtn").addEventListener("click", async () => {
+            const id = document.getElementById("tSheetId").value;
+            const employee = document.getElementById("employeeIDinput").value;
+            const reason =  document.getElementById("reasonInput").value;
+            const start_date = document.getElementById("dateStartInput").value;
+            const duration = document.getElementById("durationInput").value;
+            const discounted = document.getElementById("discountedInput").value;
+            const description = document.getElementById("descriprtionInput").value;
+            //если id не установлено до создаем новую запись, иначе редактируем ее 
+            if (id === "")
+                await createSheet(employee, reason, start_date, duration, discounted, description);
+            else
+                await editSheet(id, employee, reason, start_date, duration, discounted, description);
+            reset();
+        });
+
+        //вызываем функцию получения записей
+        getTSheets();
+    </script>
+ 
