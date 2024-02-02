@@ -10,6 +10,7 @@ namespace TestBTLab
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            //Проивзодим внедрение зависемостей
             builder.Services.AddSingleton<ITimeSheetDBConnection, TimeSheetDBConnection>();
             builder.Services.AddSingleton<ITimeSheetCRUD, TimeSheetCRUD>();
 

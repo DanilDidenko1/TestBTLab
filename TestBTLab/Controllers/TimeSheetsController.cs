@@ -7,6 +7,7 @@ using TestBTLab.Models;
 
 namespace TestBTlab.Controllers
 {
+    //контроллер API с REST архитектурой
     [Route("api/[controller]")]
     [ApiController]
     public class TimeSheetsController : Controller

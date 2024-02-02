@@ -3,9 +3,9 @@ using System.Data.SqlClient;
 
 namespace TestBTLab.Models
 {
+    //Класс устанавливающий соединение с БД
     public class TimeSheetDBConnection : ITimeSheetDBConnection
     {
-        //private readonly string connectionString = "Data Source=DESKTOPDANIL\\SQLEXPRESS;Initial Catalog=TaskBTlab;Integrated Security=True";;
         private readonly IConfiguration _configuration;
         public TimeSheetDBConnection(IConfiguration configuration)
         {

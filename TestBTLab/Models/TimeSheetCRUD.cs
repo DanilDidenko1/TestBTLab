@@ -3,6 +3,7 @@ using TestBTlab.Models;
 
 namespace TestBTLab.Models
 {
+    //Данный класс взаимодействует с базой данных через ADO.Net 
     public class TimeSheetCRUD : ITimeSheetCRUD
     {
         private readonly ITimeSheetDBConnection _connection;
@@ -24,14 +25,12 @@ namespace TestBTLab.Models
                 string sqlExpression = "SELECT * FROM TimeSheet";
                 SqlCommand command = new SqlCommand(sqlExpression, connect);
                 SqlDataReader reader = command.ExecuteReader();
-
                 while (reader.Read())
                 {
                     timeSheets.Add(new TimeSheet() { Id = (int)reader.GetValue(0), employee = (int)reader.GetValue(1), reason = (int)reader.GetValue(2), start_date = (DateTime)reader.GetValue(3), duration = (int)reader.GetValue(4), discounted = (bool)reader.GetValue(5), description = (string)reader.GetValue(6) });
                 }
                 return timeSheets;
             }
-             
         }
 
         public TimeSheet GetOne(int id) 
